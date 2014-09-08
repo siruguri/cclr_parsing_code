@@ -142,8 +142,12 @@ class CCLRParser
   end
 end
 
-if ARGV.size < 1 then
-  puts "Need an input file... exiting."
+if ARGV.size < 1 || !File.exists?(ARGV[0]) then
+  puts "Need an input file. 1st cmd line arg is either not given or is not a file. Exiting..."
+  exit -1
+end
+if ARGV.size < 2
+  $stderr.write("Need a command - either list, delete or update - as 2nd cmd line arg.\n")
   exit -1
 end
 
@@ -156,6 +160,8 @@ end
 
 parser = CCLRParser.new config 
 current_function_index=-1
+
+# Parse the database output files
 File.open(ARGV[0]).readlines.each do |line|
   line.chomp!
   if /\d+/.match line
@@ -163,14 +169,22 @@ File.open(ARGV[0]).readlines.each do |line|
   else
     # Discard the line and move to the next parsing function
     current_function_index += 1
-    puts "Reading #{line}, now parsing with #{function_order[current_function_index]}"
+    $stderr.write "Reading #{line}, now parsing with #{function_order[current_function_index]}\n"
   end
-
 end
 
-if ARGV.size < 2
+# Process the command line
+cmd = ARGV[1]
+if cmd == 'update'
   atom_entries = parser.make_entries
   status = parser.client.send_batch atom_entries
-else 
-  puts parser.client.all_contacts.body
+elsif cmd == 'list'
+  parser.client.fetch_all_contacts
+  puts parser.client.contact_list
+elsif cmd == 'delete'
+  parser.client.fetch_all_contacts
+  status = parser.client.send_batch parser.client.contact_list['entry'], 'delete'
+else  
+  $stderr.write("Unknown command - #{cmd}\n")
+  exit -1
 end
