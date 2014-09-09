@@ -1,4 +1,4 @@
-$LOAD_PATH.unshift("/users/sameer/code/google.apps")
+$LOAD_PATH.unshift("/users/sameer/code/google.apps", "/var/www/vhosts/cclr.org/code/google_api_client")
 require "google_contacts_api"
 require 'parseconfig'
 
@@ -73,7 +73,7 @@ class CCLRParser
 
       if values[:emails] then
         values[:emails].each do |em|
-          if em[:type] == 'Work' or em[:type] == "Work 2" or em[:type] == "Work1"
+          if em[:type] == 'Work' or em[:type] == "Work 2" or em[:type] == "Work1" or em[:type] == "Work2"
             rel = 'http://schemas.google.com/g/2005#work'
           elsif em[:type] == 'Home'
             rel = 'http://schemas.google.com/g/2005#home'
@@ -164,7 +164,17 @@ current_function_index=-1
 # Parse the database output files
 File.open(ARGV[0]).readlines.each do |line|
   line.chomp!
-  if /\d+/.match line
+
+  # Unicode characters will screw up the regex matching but then those lines are actual lines anyway
+  matched = false
+  begin
+    matched = (/^\d+/.match(line) != nil)
+  rescue ArgumentError
+    # Ignore exception raised due to Unicode characters
+    matched=true
+    line.encode!('UTF-8', 'UTF-8', :invalid => :replace)
+  end
+  if matched
     parser.send function_order[current_function_index], (line.split("\t"))
   else
     # Discard the line and move to the next parsing function
