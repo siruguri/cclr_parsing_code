@@ -71,6 +71,10 @@ class CCLRParser
                             familyName: values[:last_name],
                             fullName: full_name)
 
+      if values[:organization_name]
+        contact_atom.add_organization(organization_name: values[:organization_name])
+      end
+
       if values[:emails] then
         values[:emails].each do |em|
           if em[:type] == 'Work' or em[:type] == "Work 2" or em[:type] == "Work1" or em[:type] == "Work2"
@@ -190,7 +194,7 @@ if cmd == 'update'
   status = parser.client.send_batch atom_entries
 elsif cmd == 'list'
   parser.client.fetch_all_contacts
-  puts parser.client.contact_list
+  puts parser.client.contact_list_info
 elsif cmd == 'delete'
   parser.client.fetch_all_contacts
   status = parser.client.send_batch parser.client.contact_list['entry'], 'delete'
