@@ -2,9 +2,11 @@ $LOAD_PATH.unshift("/users/sameer/code/google.apps", "/var/www/vhosts/cclr.org/c
 require "google_contacts_api"
 require 'parseconfig'
 
-function_order=[:prefix_suffix_phonetype, :location_type, :contacts, :email, :phone]
+function_order=[:contacts, :prefix_suffix_phonetype, :location_type, :email, :phone]
 
 class CCLRParser
+  attr_accessor :selected_cids
+
   class UnknownDataTypeException < Exception
   end
   def initialize(config=nil)
@@ -34,32 +36,40 @@ class CCLRParser
   end
 
   def contacts(fields)
-    @contact_cards[fields[0]]={}
-    @contact_cards[fields[0]][:first_name]=fields[1]
-    @contact_cards[fields[0]][:middle_name]=fields[2]
-    @contact_cards[fields[0]][:last_name]=fields[3]
-    @contact_cards[fields[0]][:display_name]=fields[4]
-    @contact_cards[fields[0]][:prefix]=@prefix_values[fields[5]]
-    @contact_cards[fields[0]][:suffix]=@suffix_values[fields[6]]
-    @contact_cards[fields[0]][:job_title]=fields[7]
-    @contact_cards[fields[0]][:organization_name]=fields[8]
+    # only create cards for the selected CIDs
+    if @selected_cids[fields[0]]
+#      puts ">> accepting #{fields[0]}; size is now #{@contact_cards.keys.size}"
+
+      @contact_cards[fields[0]]={}
+      @contact_cards[fields[0]][:first_name]=fields[1]
+      @contact_cards[fields[0]][:middle_name]=fields[2]
+      @contact_cards[fields[0]][:last_name]=fields[3]
+      @contact_cards[fields[0]][:display_name]=fields[4]
+      @contact_cards[fields[0]][:prefix]=@prefix_values[fields[5]]
+      @contact_cards[fields[0]][:suffix]=@suffix_values[fields[6]]
+      @contact_cards[fields[0]][:job_title]=fields[7]
+      @contact_cards[fields[0]][:organization_name]=fields[8]
+    else 
+#      puts ">> rejecting #{fields[0]}"
+    end
   end
 
   def email(fields)
     cid = fields[0]
-    @contact_cards[cid] ||= {}
-    @contact_cards[cid][:emails] ||= []
-    @contact_cards[cid][:emails] << {value: fields[1], type: @location_types[fields[2]], primary: (fields[3].to_i == 1)}
+    if @contact_cards[cid]
+      @contact_cards[cid][:emails] ||= []
+      @contact_cards[cid][:emails] << {value: fields[1], type: @location_types[fields[2]], primary: (fields[3].to_i == 1)}
+    end
   end
 
   def phone(fields)
     cid = fields[0]
-    @contact_cards[cid] ||= {}
-    @contact_cards[cid][:phones] ||= []
-    @contact_cards[cid][:phones] << {value: fields[1], ext: fields[2], location_type: @location_types[fields[3]],
-      primary: (fields[4].to_i == 1), phone_type: @phone_types[fields[5]]}
+    if @contact_cards[cid]
+      @contact_cards[cid][:phones] ||= []
+      @contact_cards[cid][:phones] << {value: fields[1], ext: fields[2], location_type: @location_types[fields[3]],
+        primary: (fields[4].to_i == 1), phone_type: @phone_types[fields[5]]}
+    end
   end
-
 
   def make_entries
     @contact_cards.each do |cid, values|
@@ -77,14 +87,14 @@ class CCLRParser
 
       if values[:emails] then
         values[:emails].each do |em|
-          if em[:type] == 'Work' or em[:type] == "Work 2" or em[:type] == "Work1" or em[:type] == "Work2"
+          if em[:type] == 'Department1' or em[:type] == 'Work' or em[:type] == "Work 2" or em[:type] == "Work1" or em[:type] == "Work2"
             rel = 'http://schemas.google.com/g/2005#work'
           elsif em[:type] == 'Home'
             rel = 'http://schemas.google.com/g/2005#home'
           elsif em[:type] == 'Other' or em[:type] == "Billing"
             rel = 'http://schemas.google.com/g/2005#other'
           else
-            raise UnknownDataTypeException, "#{em[:type]} is an unknown email type"
+            raise UnknownDataTypeException, "#{em[:type]} is an unknown email type for ID #{cid}"
           end
           if em[:primary]
             primary = true
@@ -98,7 +108,7 @@ class CCLRParser
 
       if values[:phones] then
         phone_map = {}
-        ["Work1", "Work2", "Home", "Other"].each do |l|
+        ["Department10", "Work1", "Work2", "Home", "Other"].each do |l|
           ["Direct", "Fax", "Phone", "Mobile"].each do |p|
             if p == "Direct" or p == "Phone"
               type = ""
@@ -106,7 +116,7 @@ class CCLRParser
               type = "_#{p.downcase}"
             end
 
-            if l == 'Work1' || l == 'Work2' 
+            if l == 'Work1' || l == 'Work2'  || l == 'Department10'
               dest = "#work#{type}"
             elsif l == 'Other'
               if p == 'Direct' or p == 'Phone'
@@ -128,7 +138,7 @@ class CCLRParser
         values[:phones].each do |ph|
           dest = phone_map["#{ph[:location_type]}.#{ph[:phone_type]}"]
           if dest.nil?
-            raise UnknownDataTypeException, "#{ph[:location_type]}.#{ph[:phone_type]} not a known phone type"
+            raise UnknownDataTypeException, "#{ph[:location_type]}.#{ph[:phone_type]} not a known phone type for contact ID #{cid}"
           end
           
           contact_atom.add_phone(rel: "http://schemas.google.com/g/2005#{dest}", primary: ph[:primary],
@@ -146,8 +156,8 @@ class CCLRParser
   end
 end
 
-if ARGV.size < 1 || !File.exists?(ARGV[0]) then
-  puts "Need an input file. 1st cmd line arg is either not given or is not a file. Exiting..."
+if ARGV.size < 2 || !File.exists?(ARGV[0]) || !File.exists?(ARGV[1]) then
+  puts "Need two input files. 1st and 2nd cmd line args are either not given or is not a file. Exiting..."
   exit -1
 end
 if ARGV.size < 2
@@ -165,8 +175,16 @@ end
 parser = CCLRParser.new config 
 current_function_index=-1
 
-# Parse the database output files
+# Parse the API output
+selected_cids={}
 File.open(ARGV[0]).readlines.each do |line|
+  line.chomp!
+  selected_cids[line]=1
+end
+parser.selected_cids=selected_cids
+
+# Parse the database output files
+File.open(ARGV[1]).readlines.each do |line|
   line.chomp!
 
   # Unicode characters will screw up the regex matching but then those lines are actual lines anyway
@@ -188,7 +206,7 @@ File.open(ARGV[0]).readlines.each do |line|
 end
 
 # Process the command line
-cmd = ARGV[1]
+cmd = ARGV[2]
 if cmd == 'update'
   atom_entries = parser.make_entries
   status = parser.client.send_batch atom_entries
