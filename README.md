@@ -13,10 +13,9 @@ import via the Google Shared Contacts API.
 
         git clone https://github.com/siruguri/google_api_client
 
-Note that these have already been installed on the CCLR machine at `216.70.92.135`. Login as `cclr` via SSH and change to the `code` folder in the home folder to run the commands in the following section.
+1. The script `civi_api_call.php` has to be copied to the Drupal installation subfolder `sites/all/modules`. That is, to `~/httpdocs/sites/all/modules`
 
-    ssh cclr@216.70.92.135 # Enter password when prompted
-    /home/cclr$ > cd code
+Note that these have already been installed on the CCLR machine at `216.70.92.135`. 
 
 # Instructions for Use
 
@@ -24,13 +23,27 @@ These instructions assume familiarity with using a UNIX command line interface, 
 
     ~cclr.org$ > ls
 
+Login as `cclr` via SSH and change to the `code` folder in the home folder to run the commands in the following section.
+
+    ssh cclr@216.70.92.135 # Enter password when prompted
+    /home/cclr$ > cd code
+
+## Get the group's contact IDs
+
+Run the following commands to extract the IDs
+
+    ~cclr.org$ > cd scripts
+    ~cclr.org$ > ./generate_group_ids.sh > group_ids.txt
+
+Confirm that the file `group_ids.txt` has been created and has as many records as the smart group does - if not, re-run this scipt. The Civi API isn't very stable and will sometimes time out.
+
 ## Dump MySQL databse
 
 The MySQL database dump can be obtained by running the script `connect_to_db.sh` in the `scripts` folder. This dump
 script assumes that there is a file named `queries.txt` in the folder it is run in. It outputs the table information to
 STDOUT:
 
-    ~cclr.org/code/parsing_code$ > cd /scripts
+    ~cclr.org/code/parsing_code$ > cd scripts # if you are not already in the scripts folder
     ~cclr.org/code/parsing_code$ > connect_to_db.sh > tables.txt
 
 ## Run the parsing code
