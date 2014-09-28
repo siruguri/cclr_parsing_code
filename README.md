@@ -1,7 +1,8 @@
 # Introduction
 
-This application parses a MySQL database dump of contacts from a Civi database and converts it to a format suitable for
-import via the Google Shared Contacts API.
+This application parses a MySQL database dump of contacts belonging to
+a specified group in a Civi database and converts it to a format
+suitable for import via the Google Shared Contacts API.
 
 # Installation
 
@@ -28,41 +29,55 @@ Login as `cclr` via SSH and change to the `code` folder in the home folder to ru
     ssh cclr@216.70.92.135 # Enter password when prompted
     /home/cclr$ > cd code
 
+# One Click Run
+
+All of the steps below are available through a single script. To run the single script by itself, do the following:
+
+1. Change to the `code/parsing_code` folder:
+
+        cd code/parsing code
+
+1. Run this Ruby script as follows:
+
+        ruby run_commands.rb
+
+# Individual Steps Breakdown
+
+You can also run each individual step as follows.
+
 ## Get the group's contact IDs
 
-Run the following commands to extract the IDs
+Run the following commands to extract the IDs for all contacts in a given group. Note that the group is searched by the group's name, which is hard-coded in the following shell script (to _Google Contacts_):
 
-    ~cclr.org$ > cd scripts
-    ~cclr.org$ > ./generate_group_ids.sh > group_ids.txt
+    ~cclr.org$ > scripts/generate_group_ids.sh > group_ids.txt
 
-Confirm that the file `group_ids.txt` has been created and has as many records as the smart group does - if not, re-run this scipt. The Civi API isn't very stable and will sometimes time out.
+Confirm that the file `group_ids.txt` has been created and has as many records as the group it's extracting from does - if not, re-run this scipt. The Civi API isn't very stable and will sometimes time out.
 
 ## Dump MySQL databse
 
 The MySQL database dump can be obtained by running the script `connect_to_db.sh` in the `scripts` folder. This dump
-script assumes that there is a file named `queries.txt` in the folder it is run in. It outputs the table information to
-STDOUT:
+script assumes that there is a file named `queries.sql` in the `scripts` folder. It outputs the table information to
+a file called `scripts/tables.txt`:
 
-    ~cclr.org/code/parsing_code$ > cd scripts # if you are not already in the scripts folder
-    ~cclr.org/code/parsing_code$ > connect_to_db.sh > tables.txt
+    ~cclr.org/code/parsing_code$ > scripts/connect_to_db.sh
 
 ## Run the parsing code
 
 Note that the parsing code assumes that the folder containing the Google Shared Contacts API Ruby gem is a peer of the
 folder containing the parsing code. This is how it has already been set up on the CCLR account.
 
-The parsing code can perform three actions: **list**, **delete**, and **update**
+The parsing code can perform three actions: **list**, **delete**, and **update**. Note that its first two command line argumensts have to be the files output by the `generate_group_ids.sh` and `connect_to_db.sh` shell script.
 
     # This will output an XML dump of all the existing contacts.
-    ~cclr.org/code/parsing_code$ > ruby parse_civi.rb tables.txt list
+    ~cclr.org/code/parsing_code$ > ruby parse_civi.rb scripts/group_ids.txt scripts/tables.txt list
 
 To update the contacts with the latest Civi database dump, you have to delete existing contacts and then run an update. Please wait for 5-10 seconds between the two steps.
 
     # This will delete all existing contacts in the directory
-    ~cclr.org/code/parsing_code$ > ruby parse_civi.rb tables.txt delete
+    ~cclr.org/code/parsing_code$ > ruby parse_civi.rb scripts/group_ids.txt scripts/tables.txt delete
 
     # This will update contacts from the tables.txt file
-    ~cclr.org/code/parsing_code$ > ruby parse_civi.rb tables.txt update
+    ~cclr.org/code/parsing_code$ > ruby parse_civi.rb scripts/group_ids.txt scripts/tables.txt update
 
 ## Configuration Options
 
