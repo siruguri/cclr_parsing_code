@@ -1,3 +1,13 @@
+require 'yaml'
+
+script_loc = File.expand_path '../config/app.yml', __FILE__
+if !File.exists? "#{script_loc}"
+  config = {}
+else 
+  config = YAML::load_file("#{script_loc}")
+end
+
+
 class RunCommands
   def initialize(opts_hash)
     @_output_fh=nil
@@ -13,6 +23,7 @@ class RunCommands
   end
 
   def run_cmd(cmd_string)
+    puts cmd_string
     if @opts[:pwd]
       cmd_string = "cd #{@opts[:pwd]}; #{cmd_string}"
     end
@@ -81,8 +92,12 @@ class RunCommands
 end
 
 runner = RunCommands.new(pwd: File.expand_path(File.dirname(__FILE__)))
+ruby_exec=config['ruby_exec'] || 'ruby'
 
 runner.run_cmd('scripts/generate_group_ids.sh')
 runner.run_cmd('scripts/connect_to_db.sh')
-
+runner.run_cmd("#{ruby_exec} parse_civi.rb scripts/group_ids.txt scripts/tables.txt delete")
+# The delete command takes a few seconds to complete
+sleep 10
+runner.run_cmd("#{ruby_exec} parse_civi.rb scripts/group_ids.txt scripts/tables.txt update")
 runner.close
