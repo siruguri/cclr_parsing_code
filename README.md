@@ -34,9 +34,9 @@ Login as `cclr` via SSH and change to the `code` folder in the home folder to ru
 All of the steps below are available through a single script. To run the single script by itself, do the following:
 
 1. Make sure you have a group named _Google Contacts_ in your Civi installation.
-1. Change to the `code/parsing_code` folder:
+1. Change to the `code/parsing_code` folder - note that there is an underscore in `parsing_code` below:
 
-        ~cclr.org$ > cd code/parsing code
+        ~cclr.org$ > cd code/parsing_code
 
 1. Run this Ruby script as follows:
 
