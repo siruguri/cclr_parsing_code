@@ -3,3 +3,6 @@
 *txt
 _err*
 docs/
+_out*
+config/app.yml
+log_files/*
