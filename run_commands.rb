@@ -2,30 +2,25 @@ require 'yaml'
 
 script_loc = File.expand_path '../config/app.yml', __FILE__
 if !File.exists? "#{script_loc}"
-  config = {}
+  app_config = {}
 else 
-  config = YAML::load_file("#{script_loc}")
+  app_config = YAML::load_file("#{script_loc}")
 end
 
 
 class RunCommands
-  def initialize(opts_hash)
+  def initialize(cfg)
     @_output_fh=nil
     @_fn=Time.now.to_i
     @success=nil
 
-    @opts={}
-    if opts_hash
-      opts_hash.each do |k,v| 
-        @opts[k]=v
-      end
-    end
+    @_config=cfg.merge({pwd: File.expand_path(File.dirname(__FILE__))})
   end
 
   def run_cmd(cmd_string)
     puts cmd_string
-    if @opts[:pwd]
-      cmd_string = "cd #{@opts[:pwd]}; #{cmd_string}"
+    if @_config[:pwd]
+      cmd_string = "cd #{@_config[:pwd]}; #{cmd_string}"
     end
     cmd_string += " 2>#{err_filename}"
     @success=nil
@@ -37,7 +32,8 @@ class RunCommands
     output = %x[#{cmd_string}]
     @success=$?.success?
 
-    @_output_fh=File.open(out_filename, "w")
+    @_output_fh=File.open("#{@_config[:pwd]}/#{out_filename}", "w")
+    puts output
     @_output_fh.write(output)
 
   end
@@ -65,12 +61,14 @@ class RunCommands
       end
     end
 
-    if File.exists? out_filename
-      File.unlink out_filename
-    end
-
-    if File.exists? err_filename
-      File.unlink err_filename
+    if @_config[:delete_logs] == 'true'
+      if File.exists? out_filename
+        File.unlink out_filename
+      end
+      
+      if File.exists? err_filename
+        File.unlink err_filename
+      end
     end
   end
   
@@ -84,15 +82,19 @@ class RunCommands
 
   private
   def err_filename
-    "_err.#{@_fn}"
+    folder = @_config['log_folder'] ? @_config['log_folder'] : ''
+
+    "#{folder}/_err.#{@_fn}"
   end
   def out_filename
-    "_out.#{@_fn}"
+    folder = @_config['log_folder'] ? @_config['log_folder'] : ''
+
+    "#{folder}/_out.#{@_fn}"
   end
 end
 
-runner = RunCommands.new(pwd: File.expand_path(File.dirname(__FILE__)))
-ruby_exec=config['ruby_exec'] || 'ruby'
+runner = RunCommands.new(app_config)
+ruby_exec=app_config['ruby_exec'] || 'ruby'
 
 runner.run_cmd('scripts/generate_group_ids.sh')
 runner.run_cmd('scripts/connect_to_db.sh')

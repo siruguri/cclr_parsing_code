@@ -4,3 +4,4 @@
 _err*
 _out*
 config/app.yml
+log_files/*
