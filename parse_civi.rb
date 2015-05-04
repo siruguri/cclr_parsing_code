@@ -1,4 +1,4 @@
-$LOAD_PATH.unshift("/users/sameer/code/google.apps", "/var/www/vhosts/cclr.org/code/google_api_client")
+$LOAD_PATH.unshift("/users/sameer/code/google.apps", "/var/www/vhosts/cclr.org/code/google_api_client", "/data/sites/www.cclr.org/gapi_integration/google_api_client")
 require "google_contacts_api"
 require 'parseconfig'
 

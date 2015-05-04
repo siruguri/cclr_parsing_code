@@ -6,7 +6,7 @@ suitable for import via the Google Shared Contacts API.
 
 # Installation
 
-1. This code has been tested on Ruby 2.1.2 (MRI)
+1. This code has been tested on Ruby 2.1.2 and 2.2.2 (both MRI)
 1. This code requires the following gems to be installed prior to running:
    * [XML Simple](https://github.com/maik/xml-simple/): `gem install xml-simple`
    * [ParseConfig](https://github.com/datafolklabs/ruby-parseconfig/): `gem install parse-config`
@@ -14,7 +14,8 @@ suitable for import via the Google Shared Contacts API.
 
         git clone https://github.com/siruguri/google_api_client
 
-1. The script `civi_api_call.php` has to be copied to the Drupal installation subfolder `sites/all/modules`. That is, to `~/httpdocs/sites/all/modules`
+1. The load path for the Google API client code has to be added to the top of the `parse_civi.rb` script
+1. The script `civi_api_call.php` has to be copied to the Drupal installation subfolder `sites/all/modules`. This will be done automatically by `scripts/generate_group_ids.sh` when you run it.
 
 Note that these have already been installed on the CCLR machine at `216.70.92.135`. 
 

@@ -6,3 +6,4 @@ docs/
 _out*
 config/app.yml
 log_files/*
+google_api_client/

@@ -1,2 +1,2 @@
 echo 'starting connect to db'
-mysql -u cclr_logo74 --password=cclr_pass < scripts/queries.sql > scripts/tables.txt # cclr_pass
+mysql -u cclr_dba --password=musu30in cclr < scripts/queries.sql > scripts/tables.txt # cclr_pass

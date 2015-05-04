@@ -1,6 +1,6 @@
 <?php 
   require_once 'civicrm/api/class.api.php';
-  $api = new civicrm_api3(array( 'conf_path' => '/var/www/vhosts/cclr.org/httpdocs/sites/default' ));
+  $api = new civicrm_api3(array( 'conf_path' => '/data/sites/www.cclr.org/sites/default' ));
 
 $params = array(
   'version' => 3,

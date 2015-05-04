@@ -1,4 +1,4 @@
-use cclr_logo74;
+use cclr;
 
 create temporary table _civi_export_contact_ids (cid INT);
 
