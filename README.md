@@ -35,9 +35,19 @@ Login as `cclr` via SSH and change to the `code` folder in the home folder to ru
 All of the steps below are available through a single script. To run the single script by itself, do the following:
 
 1. Make sure you have a group named _Google Contacts_ in your Civi installation.
-1. Change to the `code/parsing_code` folder - note that there is an underscore in `parsing_code` below:
+1. After logging in, change to the `gapi_integration` folder - note that there is an underscore in `gapi_integration` below
 
-        ~cclr.org$ > cd code/parsing_code
+        ~cclr.org$ > cd gapi_integration
+
+1. Create the folder `log_files`:
+
+        ~cclr.org$ > mkdir log_files
+
+1. Open the file `config/app.sample.yml` and save it to `config/app.yml`.
+1. Change the Ruby exec location specified in the first line
+1. Add a single line as follows:
+
+        ~cclr.org$ > log_folder: log_files
 
 1. Run this Ruby script as follows:
 
