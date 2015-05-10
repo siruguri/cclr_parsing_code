@@ -104,3 +104,11 @@ than 5000 contacts in the directory:
     endpoint='/m8/feeds/contacts/cclr.org/full?max-results=5000'
     source='CCLR_dev_test'
     batch_endpoint='/m8/feeds/contacts/cclr.org/full/batch'
+
+# Running Regularly
+
+Use this cron job line as a sample
+
+HOME=/var/where/home/is
+CODE_LOCATION=/var/where/home/is/and/code/is
+0  2	 *    *	  *    $HOME/.rvm/rubies/ruby-2.1.2/bin/ruby $CODE_LOCATION/run_commands.rb; /bin/touch $HOME/tmp/ran_parse
