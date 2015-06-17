@@ -211,12 +211,14 @@ cmd = ARGV[2]
 if cmd == 'update'
   atom_entries = parser.make_entries
   status = parser.client.send_batch atom_entries
+elsif cmd == 'get'
+  parser.client.fetch_one_contact('https://www.google.com/m8/feeds/contacts/cclr.org/full/7f25e2218d05b544')
 elsif cmd == 'list'
   parser.client.fetch_all_contacts
   puts parser.client.contact_list_info
 elsif cmd == 'delete'
   parser.client.fetch_all_contacts
-  status = parser.client.send_batch parser.client.contact_list['entry'], 'delete'
+  status = parser.client.send_batch parser.client.contact_list, 'delete'
 else  
   $stderr.write("Unknown command - #{cmd}\n")
   exit -1

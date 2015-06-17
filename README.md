@@ -9,13 +9,15 @@ suitable for import via the Google Shared Contacts API.
 1. This code has been tested on Ruby 2.1.2 and 2.2.2 (both MRI)
 1. This code requires the following gems to be installed prior to running:
    * [XML Simple](https://github.com/maik/xml-simple/): `gem install xml-simple`
-   * [ParseConfig](https://github.com/datafolklabs/ruby-parseconfig/): `gem install parse-config`
+   * [ParseConfig](https://github.com/datafolklabs/ruby-parseconfig/): `gem install parseconfig`
 1. Download the [Google Shared Contacts API](https://github.com/siruguri/google_api_client/) gem to a folder
 
         git clone https://github.com/siruguri/google_api_client
 
 1. The load path for the Google API client code has to be added to the top of the `parse_civi.rb` script
 1. The script `civi_api_call.php` has to be copied to the Drupal installation subfolder `sites/all/modules`. This will be done automatically by `scripts/generate_group_ids.sh` when you run it.
+1. Set up the `clients_secrets.json` file - obtain this from the CCLR administrator.
+1. Modify the following gem file `(ruby-2.2.2@global)/gems/signet-0.6.0/lib/signet/oauth_2/client.rb` at line 842, to add the statement, `assertion[:sub]='cclrdev.org` This has to be redone everytime the `signet` gem is updated.
 
 Note that these have already been installed on the CCLR machine at `216.70.92.135`. 
 

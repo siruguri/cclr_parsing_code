@@ -6,4 +6,6 @@ docs/
 _out*
 config/app.yml
 log_files/*
-google_api_client/
+google_api_client/.DS_Store
+client_secrets.json
+.DS_Store
